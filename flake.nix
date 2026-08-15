@@ -7,31 +7,32 @@
   };
 
   outputs = { self, nixpkgs, flake-utils }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs {
-          inherit system;
-          config = {
-            allowUnfree = true;
+    flake-utils.lib.eachSystem
+      [
+        "x86_64-linux"
+        "aarch64-darwin"
+      ]
+      (system:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
           };
-        };
 
-        rescileCE = pkgs.callPackage ./pkgs/package.nix { };
-      in
-      {
-        # packages (build artifacts)
-        packages.default = rescileCE;
-        packages.rescile-ce = rescileCE;
+          rescileCE = pkgs.callPackage ./pkgs/package.nix { };
+        in
+        {
+          packages.default = rescileCE;
+          packages.rescile-ce = rescileCE;
 
-        # devShell (direnv / nix develop environment)
-        devShells.default = pkgs.mkShell {
-          packages = [
-            rescileCE
-          ];
+          devShells.default = pkgs.mkShell {
+            packages = [
+              rescileCE
+            ];
 
-          shellHook = ''
-            echo "Rescile CE devShell active"
-          '';
-        };
-      });
+            shellHook = ''
+              echo "Rescile CE devShell active"
+            '';
+          };
+        });
 }
